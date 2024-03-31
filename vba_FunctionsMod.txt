@@ -1,0 +1,75 @@
+
+Option Explicit
+
+Function SolverAdd(CellRef, Relation As Integer, Optional FormulaText) As Variant
+    SolverAdd = SolvAdd(CellRef, Relation, FormulaText)
+End Function
+
+Function SolverChange(CellRef As Variant, Relation As Integer, Optional FormulaText As Variant) As Variant
+    SolverChange = SolvChange(CellRef, Relation, FormulaText)
+End Function
+
+Function SolverDelete(CellRef As Variant, Relation As Integer, Optional FormulaText As Variant) As Variant
+    SolverDelete = SolvDelete(CellRef, Relation, FormulaText)
+End Function
+
+Function SolverFinish(Optional KeepFinal As Variant, Optional ReportArray As Variant, Optional OutlineReports) As Variant
+    SolverFinish = SolvFinish(KeepFinal, ReportArray, OutlineReports)
+End Function
+
+Function SolverFinishDialog(Optional KeepFinal As Variant, Optional ReportArray As Variant, Optional OutlineReports) As Variant
+    SolverFinishDialog = SolvFinishDialog(KeepFinal, ReportArray, OutlineReports)
+End Function
+
+Function SolverGet(Typenum As Integer, Optional SheetName As Variant) As Variant
+    SolverGet = SolvGet(Typenum, SheetName)
+End Function
+
+Function SolverLoad(LoadArea As Variant, Optional Merge) As Variant
+    SolverLoad = SolvLoad(LoadArea, Merge)
+End Function
+
+Function SolverOk(Optional SetCell, Optional MaxMinVal, Optional ValueOf, Optional ByChange, Optional Engine, Optional EngineDesc) As Variant
+    SolverOk = SolvOk(SetCell, MaxMinVal, ValueOf, ByChange, Engine, EngineDesc)
+End Function
+
+Function SolverOkDialog(Optional SetCell, Optional MaxMinVal, Optional ValueOf, Optional ByChange, Optional Engine, Optional EngineDesc) As Variant
+    SolverOkDialog = SolvOkDialog(SetCell, MaxMinVal, ValueOf, ByChange, Engine, EngineDesc)
+End Function
+
+Function SolverOptions(Optional MaxTime, Optional Iterations, Optional Precision, Optional AssumeLinear, _
+                              Optional StepThru, Optional Estimates, Optional Derivatives, Optional SearchOption, _
+                              Optional IntTolerance, Optional Scaling, Optional Convergence, Optional AssumeNonNeg, _
+                              Optional PopulationSize, Optional RandomSeed, Optional MultiStart, _
+                              Optional RequireBounds, Optional MutationRate, Optional MaxSubproblems, _
+                              Optional MaxIntegerSols, Optional SolveWithout, Optional MaxTimeNoImp) As Variant
+
+    SolverOptions = SolvOptions(MaxTime, Iterations, Precision, AssumeLinear, _
+                               StepThru, Estimates, Derivatives, SearchOption, _
+                              IntTolerance, Scaling, Convergence, AssumeNonNeg, _
+                              PopulationSize, RandomSeed, MultiStart, _
+                              RequireBounds, MutationRate, MaxSubproblems, _
+                              MaxIntegerSols, SolveWithout, MaxTimeNoImp)
+End Function
+
+Function SolverReset() As Variant
+    SolverReset = SolvReset
+End Function
+
+Function SolverSave(SaveArea As Variant) As Variant
+    SolverSave = SolvSave(SaveArea)
+End Function
+
+Function SolverSolve(Optional UserFinish As Variant, Optional ShowRef As Variant) As Variant
+    SolverSolve = SolvSolve(UserFinish, ShowRef)
+End Function
+
+
+
+
+
+
+
+
+
+

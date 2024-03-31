@@ -1,0 +1,964 @@
+Option Explicit
+Option Private Module
+
+Public Sub Push_btnOptions()
+    Action = "Options"
+End Sub
+
+Public Sub Push_btnCancel()
+    Action = "Cancel"
+End Sub
+
+Public Sub Push_btnAdd()
+    Action = "Add"
+    GlobalChange = False
+End Sub
+Public Sub Push_Change()
+    Action = "Change"
+    GlobalChange = True
+End Sub
+Public Sub Push_btnDelete()
+    Action = "Delete"
+End Sub
+Sub Push_btnReset()
+        'reset everything to default values
+    On Error GoTo mainerror
+    If MsgBoxW(GlobalX4Mess.Range("solver_msg_17").Text, 33, , GlobalHelpfile, 1830) <> 1 Then
+       Exit Sub
+    End If
+    Application.RecordMacro basiccode:=GlobalX4Mess.Range("resetfunc").Text
+    Application.ScreenUpdating = False
+    ResetDialog
+    Application.ScreenUpdating = True
+    Exit Sub
+mainerror:
+    DisplayMessage "solver_err_msg", 1830, 32
+    End
+End Sub
+Public Sub Push_btnLoadSave()
+    Action = "LoadSave"
+End Sub
+Public Sub Push_btnSolve()
+    Action = "Solve"
+End Sub
+Public Sub Push_btnClose()
+    Action = "Cancel"
+End Sub
+Public Sub Push_save()
+    If Not SaveMod Then
+       Exit Sub
+    End If
+    Action = ""
+    ThisWorkbook.DialogSheets("Save_dialog").Hide
+End Sub
+
+Public Sub Push_load()
+    Action = ""
+    Dim vbacode As String
+    GlobalMerger = 2
+    With ThisWorkbook.DialogSheets("Solver_dialog")
+        If .ListBoxes("Constraint_list").ListCount <> 0 Or .EditBoxes("Adjustable_Cells").Caption <> "" Then
+           GlobalMerger = 0
+           dlgMerge.Show
+        End If
+        Select Case GlobalMerger
+           Case 1
+              Loadmod
+              vbacode = GlobalX4Mess.Range("loadfunc").Text & " " & GlobalX4Mess.Range("loadarg1").Text & _
+                    ":=" & Chr(34) & .EditBoxes("Adjustable_cells").Caption & Chr(34) & ", " & GlobalX4Mess.Range("loadarg2").Text & _
+                    "=True"
+              Application.RecordMacro basiccode:=vbacode
+           Case 2
+              Reset_all (False)
+              Loadmod
+              vbacode = GlobalX4Mess.Range("loadfunc").Text & " " & GlobalX4Mess.Range("loadarg1").Text & ":=" & Chr(34) & .EditBoxes("Adjustable_Cells").Caption & Chr(34)
+              Application.RecordMacro basiccode:=vbacode
+        End Select
+    End With
+    GlobalMerger = 2
+End Sub
+
+Public Sub push_btnAddCons()
+'user clicks add in add-dialog
+    On Error GoTo mainerror
+    If Valid_constraint(True) Then
+       ThisWorkbook.DialogSheets("Add_dialog").EditBoxes("lhs").Caption = ""
+       ThisWorkbook.DialogSheets("Add_dialog").EditBoxes("rhs").Caption = ""
+       ThisWorkbook.DialogSheets("Add_dialog").DropDowns("Options").List = Array("<=", "=", ">=", GlobalX4Mess.Range("solver_int").Text, GlobalX4Mess.Range("solver_bin").Text, GlobalX4Mess.Range("solver_dif").Text)
+       ThisWorkbook.DialogSheets("Add_dialog").DropDowns("Options").DropDownLines = 6
+       ThisWorkbook.DialogSheets("Add_dialog").DropDowns("Options").ListIndex = 1
+       ThisWorkbook.DialogSheets("Add_dialog").Focus = ThisWorkbook.DialogSheets("Add_dialog").EditBoxes("lhs").Name
+       Application.ScreenUpdating = True
+    End If
+    Exit Sub
+mainerror:
+    DisplayMessage "solver_err_msg", 1830, 32
+    End
+End Sub
+Public Sub push_btnOKCons()
+    ' user clicks ok in add-constraint dialog
+    On Error GoTo mainerror
+    If Valid_constraint(True) Then
+       ThisWorkbook.DialogSheets("add_dialog").Hide
+    End If
+    Exit Sub
+mainerror:
+    DisplayMessage "solver_err_msg", 1830, 32
+    End
+End Sub
+Public Sub push_btnConsCancel()
+
+End Sub
+Public Sub push_btnConsHelp()
+    'help for add-constraint dialog
+    On Error GoTo mainerror
+    If ThisWorkbook.DialogSheets("Add_dialog").DialogFrame.Caption = GlobalX4Mess.Range("solver_msg_46a").Text Then
+       Application.Help GlobalHelpfile, 1831
+    Else
+       Application.Help GlobalHelpfile, 1832
+    End If
+    Exit Sub
+mainerror:
+    DisplayMessage "solver_err_msg", 1830, 32
+    End
+End Sub
+Function Namefix(thestring)
+    ' This procedure doubles the "'s inside its argument.
+    ' This is necessary to avoid recording problems on sheets with quotes in their names!!!
+    Dim newstring As String, i As Long
+    On Error GoTo errorhandle
+    ReDim placeholders(Len(thestring) + 1) As String
+    For i = 1 To Len(thestring)
+        placeholders(i) = Mid(thestring, i, 1)
+        If placeholders(i) = Chr(34) Then
+           placeholders(i) = Chr(34) & Chr(34)
+        End If
+    Next
+    newstring = ""
+    For i = 1 To Len(thestring)
+       newstring = newstring & placeholders(i)
+    Next
+    Namefix = newstring
+    Exit Function
+errorhandle:
+    Namefix = ""
+End Function
+
+Public Sub Delete_constraint()
+    ' delete a constraint
+    On Error GoTo mainerror
+    Dim which_one As Long, the_left As String, the_right As String, mid_ind As Long
+    Dim i As Long, the_middle As String, newentry As String, j As Long
+    Dim theone As Long, lastone As Long, error_constraint As Boolean, dummy
+    Application.ScreenUpdating = False
+    error_constraint = False
+    which_one = ThisWorkbook.DialogSheets("Solver_dialog").ListBoxes("Constraint_list").ListIndex
+    If which_one > 0 Then
+       For i = 1 To ThisWorkbook.DialogSheets("Solver_dialog").ListBoxes("Constraint_list").ListCount
+          the_left = Mid(CStr(ActiveSheet.Names("solver_lhs" & Trim(Str(i)))), 2)
+          On Error Resume Next
+          If IsError(Range(the_left).Address) Then
+             theone = i
+             error_constraint = True
+             Exit For
+          End If
+          the_left = GetName(Range(the_left).Address)
+          mid_ind = CDbl(Mid(CStr(ActiveSheet.Names("solver_rel" & Trim(Str(i)))), 2))
+          If mid_ind < 4 Then
+             the_right = Mid(CStr(ActiveSheet.Names("solver_rhs" & Trim(Str(i)))), 2)
+             If IsCellReference(the_right) Then
+                the_right = GetName(the_right)
+             End If
+             the_middle = ThisWorkbook.DialogSheets("Add_dialog").DropDowns("Options").List(mid_ind)
+          ElseIf mid_ind = 4 Then
+             the_right = GlobalX4Mess.Range("solver_msg_int").Formula
+             the_middle = "="
+          ElseIf mid_ind = 5 Then
+             the_right = GlobalX4Mess.Range("solver_msg_bin").Formula
+             the_middle = "="
+           ElseIf mid_ind = 6 Then
+             the_right = GlobalX4Mess.Range("solver_msg_dif").Formula
+             the_middle = "="
+          End If
+          If "." <> Application.International(xlDecimalSeparator) Then
+             dummy = InStr(the_right, ".")
+             Do While dummy <> 0
+                Mid(the_right, dummy, 1) = Application.International(xlDecimalSeparator)
+                dummy = InStr(the_right, ".")
+             Loop
+          End If
+          If mid_ind < 4 Then
+             On Error Resume Next
+             Err = 0
+             the_right = GetName(Range(the_right).Address)
+             If Err > 0 Then
+               ' formula
+               j = InStr(the_right, ActiveSheet.Name)
+               If j <> 0 Then
+                  If InStr(the_right, "'" & ActiveSheet.Name & "'!") <> 0 Then
+                     j = InStr(the_right, "'" & ActiveSheet.Name & "'!")
+                     Do While j <> 0
+                        the_right = Left(the_right, j - 1) & Right(the_right, Len(the_right) - j - Len(ActiveSheet.Name) - 2)
+                        j = InStr(the_right, "'" & ActiveSheet.Name & "'!")
+                     Loop
+                  Else
+                     Do While j <> 0
+                        the_right = Left(the_right, j - 1) & Right(the_right, Len(the_right) - j - Len(ActiveSheet.Name))
+                        j = InStr(the_right, ActiveSheet.Name)
+                     Loop
+                  End If
+               End If
+               If "." <> Application.International(xlDecimalSeparator) Then
+                  j = InStr(the_right, ".")
+                  Do While j <> 0
+                      Mid(the_right, j, 1) = Application.International(xlDecimalSeparator)
+                      j = InStr(the_right, ".")
+                  Loop
+               End If
+            End If
+          End If
+          newentry = the_left & " " & the_middle & " " & Trim(the_right)
+          If ThisWorkbook.DialogSheets("Solver_dialog").ListBoxes("Constraint_list").List(which_one) = newentry Then
+             theone = i
+             Exit For
+          End If
+          If IsError(the_right) Then
+             error_constraint = True
+             theone = i
+             Exit For
+          End If
+       Next
+       If Not error_constraint Then
+          If mid_ind > 3 Then
+             Application.RecordMacro basiccode:=GlobalX4Mess.Range("delfunc").Text & " " & GlobalX4Mess.Range("addarg1").Text & ":=" & Chr(34) & Range(Stylecheck(the_left)).Address(ReferenceStyle:=GlobalR1C1) & Chr(34) & ", " & GlobalX4Mess.Range("addarg2").Text & ":=" & mid_ind
+          Else
+            If InStr(the_right, Chr(34)) = 0 Then
+               Application.RecordMacro basiccode:=GlobalX4Mess.Range("delfunc").Text & " " & GlobalX4Mess.Range("addarg1").Text & ":=" & Chr(34) & Range(Stylecheck(the_left)).Address(ReferenceStyle:=GlobalR1C1) & Chr(34) & ", " & GlobalX4Mess.Range("addarg2").Text & ":=" & mid_ind & ", " & GlobalX4Mess.Range("addarg3").Text & ":=" & Chr(34) & the_right & Chr(34)
+            Else
+               Application.RecordMacro basiccode:=GlobalX4Mess.Range("delfunc").Text & " " & GlobalX4Mess.Range("addarg1").Text & ":=" & Chr(34) & Range(Stylecheck(the_left)).Address(ReferenceStyle:=GlobalR1C1) & Chr(34) & ", " & GlobalX4Mess.Range("addarg2").Text & ":=" & mid_ind & ", " & GlobalX4Mess.Range("addarg3").Text & ":=" & Chr(34) & Namefix(the_right) & Chr(34)
+            End If
+          End If
+       End If
+       With ActiveSheet.Names
+       ThisWorkbook.DialogSheets("Solver_dialog").ListBoxes("Constraint_list").RemoveItem Index:=which_one
+       .Add Name:="solver_num", RefersTo:=ThisWorkbook.DialogSheets("solver_dialog").ListBoxes("Constraint_list").ListCount, Visible:=False
+       lastone = ThisWorkbook.DialogSheets("Solver_dialog").ListBoxes("Constraint_list").ListCount + 1
+       .Add Name:="solver_lhs" & Trim(Str(theone)), RefersTo:=ActiveSheet.Names("solver_lhs" & Trim(Str(lastone))).RefersTo, Visible:=False
+       .Add Name:="solver_rel" & Trim(Str(theone)), RefersTo:=ActiveSheet.Names("solver_rel" & Trim(Str(lastone))).RefersTo, Visible:=False
+       .Add Name:="solver_rhs" & Trim(Str(theone)), RefersTo:=ActiveSheet.Names("solver_rhs" & Trim(Str(lastone))).RefersTo, Visible:=False
+       End With
+    End If
+    Exit Sub
+mainerror:
+    DisplayMessage "solver_err_msg", 1830, 32
+    End
+End Sub
+
+Public Sub Change_constraint()
+    ' change a constraint
+    Dim which_one As Long, place As Long, the_index As Long, constraint As String
+    which_one = ThisWorkbook.DialogSheets("Solver_dialog").ListBoxes("Constraint_list").ListIndex
+    If which_one > 0 Then
+       constraint = ThisWorkbook.DialogSheets("Solver_dialog").ListBoxes("Constraint_list").List(which_one)
+       If InStr(constraint, " <= ") > 0 Then
+          place = InStr(constraint, " <= ")
+          the_index = 1
+       ElseIf InStr(constraint, " >= ") > 0 Then
+          place = InStr(constraint, " >= ")
+          the_index = 3
+       Else
+          place = InStr(constraint, " = ")
+          the_index = 2
+       End If
+       ThisWorkbook.DialogSheets("Add_dialog").EditBoxes("lhs").Caption = Trim(Left(constraint, place))
+       ThisWorkbook.DialogSheets("Add_dialog").EditBoxes("rhs").Caption = Trim(Right(constraint, Len(constraint) - place - 2))
+       ThisWorkbook.DialogSheets("Add_dialog").DropDowns("Options").List = Array("<=", "=", ">=", GlobalX4Mess.Range("solver_int").Text, GlobalX4Mess.Range("solver_bin").Text, GlobalX4Mess.Range("solver_dif").Text)
+       ThisWorkbook.DialogSheets("Add_dialog").DropDowns("Options").DropDownLines = 6
+       If ThisWorkbook.DialogSheets("Add_dialog").EditBoxes("rhs").Caption = "=" & GlobalX4Mess.Range("solver_msg_int").Formula Then
+          the_index = 4
+       ElseIf ThisWorkbook.DialogSheets("Add_dialog").EditBoxes("rhs").Caption = "=" & GlobalX4Mess.Range("solver_msg_bin").Formula Then
+          the_index = 5
+       ElseIf ThisWorkbook.DialogSheets("Add_dialog").EditBoxes("rhs").Caption = "=" & GlobalX4Mess.Range("solver_msg_dif").Formula Then
+          the_index = 6
+       End If
+       ThisWorkbook.DialogSheets("Add_dialog").DropDowns("Options").ListIndex = the_index
+       ThisWorkbook.DialogSheets("Add_dialog").DialogFrame.Caption = GlobalX4Mess.Range("solver_msg_44b").Text
+       ThisWorkbook.DialogSheets("Add_dialog").Show
+    Else
+       DisplayMessage "solver_msg_25a", 1830, 32
+    End If
+End Sub
+
+Public Sub Add_constraint()
+    ' add a constraint
+    ThisWorkbook.DialogSheets("Add_dialog").EditBoxes("lhs").Caption = ""
+    ThisWorkbook.DialogSheets("Add_dialog").EditBoxes("rhs").Caption = ""
+    ThisWorkbook.DialogSheets("Add_dialog").DropDowns("Options").List = Array("<=", "=", ">=", GlobalX4Mess.Range("solver_int").Text, GlobalX4Mess.Range("solver_bin").Text, GlobalX4Mess.Range("solver_dif").Text)
+    ThisWorkbook.DialogSheets("Add_dialog").DropDowns("Options").DropDownLines = 6
+    ThisWorkbook.DialogSheets("Add_dialog").DropDowns("Options").ListIndex = 1
+    ThisWorkbook.DialogSheets("Add_dialog").DialogFrame.Caption = GlobalX4Mess.Range("solver_msg_44a").Text
+    ThisWorkbook.DialogSheets("Add_dialog").Show
+End Sub
+Public Function Adjustables() As String
+    ' validation of variables
+    On Error GoTo mainerror
+    Dim adj As String
+    Dim thestring As String, thenewstring As String, adj_count As Long, i As Long
+    thestring = ThisWorkbook.DialogSheets("Solver_dialog").EditBoxes("Adjustable_cells").Caption
+    If Application.International(xlListSeparator) <> "," Then
+       i = InStr(thestring, Application.International(xlListSeparator))
+       Do While i <> 0
+          thestring = Left(thestring, i - 1) & "," & Mid(thestring, i + 1)
+          i = InStr(thestring, Application.International(xlListSeparator))
+       Loop
+    End If
+    thestring = Stylecheck(thestring)
+    thenewstring = ""
+    adj = ""
+    If thestring = "" Then
+       Exit Function
+    End If
+    On Error Resume Next
+    If Range(thestring).Worksheet.Name <> ActiveSheet.Name Then
+       DisplayMessage "solver_msg_3a", 1830, 32
+       ThisWorkbook.DialogSheets("Solver_dialog").Focus = ThisWorkbook.DialogSheets("Solver_dialog").EditBoxes("Adjustable_cells").Name
+       Exit Function
+    End If
+    If Not Range(thestring).Count > 0 Then
+       ThisWorkbook.DialogSheets("Solver_dialog").Focus = ThisWorkbook.DialogSheets("Solver_dialog").EditBoxes("Adjustable_cells").Name
+       Exit Function
+    End If
+    On Error GoTo mainerror
+    adj_count = Range(thestring).Areas.Count
+    For i = 1 To adj_count
+        thenewstring = thenewstring & GetName(Range(thestring).Areas(i).Address) & Application.International(xlListSeparator)
+        adj = adj & Range(thestring).Areas(i).Address & ","
+    Next
+    thenewstring = Left(thenewstring, Len(thenewstring) - 1)
+    adj = Left(adj, Len(adj) - 1)
+    Adjustables = adj
+    ThisWorkbook.DialogSheets("Solver_dialog").EditBoxes("Adjustable_cells").Text = thenewstring
+    Exit Function
+mainerror:
+    DisplayMessage "solver_err_msg", 1830, 32
+    End
+End Function
+
+Public Function Obj() As String
+    'validation of objective
+    On Error GoTo mainerror
+    Dim thestring As String
+    thestring = ThisWorkbook.DialogSheets("Solver_dialog").EditBoxes("Optimum_cell").Caption
+    If Application.ReferenceStyle = xlR1C1 Then
+       thestring = Stylecheck(thestring)
+    End If
+    Obj = ""
+    If thestring = "" Then
+       Exit Function
+    End If
+    On Error Resume Next
+    If Range(thestring).Count <> 1 Or Range(thestring).Worksheet.Name <> ActiveSheet.Name Then
+       DisplayMessage "solver_msg_7", 1830, 32
+       ThisWorkbook.DialogSheets("Solver_dialog").Focus = ThisWorkbook.DialogSheets("Solver_dialog").EditBoxes("Optimum_cell").Name
+       Action = ""
+       Exit Function
+    End If
+    On Error GoTo mainerror
+    Obj = Range(thestring).Address
+    ThisWorkbook.DialogSheets("Solver_dialog").EditBoxes("Optimum_cell").Text = GetName(Range(thestring).Address)
+    Exit Function
+mainerror:
+    DisplayMessage "solver_err_msg", 1830, 32
+    End
+End Function
+Public Sub Get_settings()
+    'gets relevant setting for the worksheet, if not a fresh worksheet
+    ' many options need not always be defined, so "on error resume next"
+    Dim noproblem As Boolean, newopt As String, newadj As String, dummy, dmy As Integer
+    Dim the_right As String, mid_ind As Long, the_left As String, helpstring  As String
+    Dim i As Long, j As Long, newentry As String, theindex As Long, the_middle As String
+    noproblem = True
+    On Error GoTo errortrap
+    newopt = ActiveSheet.Names("solver_opt")
+    If noproblem Then
+       ThisWorkbook.DialogSheets("Solver_dialog").EditBoxes("Optimum_Cell").Caption = GetName(newopt)
+    Else
+       ThisWorkbook.DialogSheets("Solver_dialog").EditBoxes("Optimum_Cell").Caption = ""
+    End If
+    Obj
+    noproblem = True
+    newadj = Range(ActiveSheet.Names("solver_adj").Name).Address(ReferenceStyle:=GlobalR1C1)
+    On Error GoTo mainerror
+    If noproblem Then
+       ThisWorkbook.DialogSheets("Solver_dialog").EditBoxes("Adjustable_Cells").Caption = newadj
+    Else
+       ThisWorkbook.DialogSheets("Solver_dialog").EditBoxes("Adjustable_Cells").Caption = ""
+    End If
+    Adjustables
+    On Error Resume Next
+    helpstring = CStr(0)
+    helpstring = Mid(CStr(ActiveSheet.Names("solver_val").RefersToLocal), 2)
+    ThisWorkbook.DialogSheets("Solver_dialog").EditBoxes("dValueof").Text = CStr(CDbl(helpstring))
+    helpstring = "=1"
+    helpstring = CStr(ActiveSheet.Names("solver_typ"))
+    Select Case helpstring
+       Case "=1"
+         ThisWorkbook.DialogSheets("Solver_dialog").EditBoxes("dValueof").Enabled = False
+         ThisWorkbook.DialogSheets("Solver_dialog").OptionButtons("max_button").Value = xlOn
+         'solver_typ = 1
+       Case "=2"
+         ThisWorkbook.DialogSheets("Solver_dialog").EditBoxes("dValueof").Enabled = False
+         ThisWorkbook.DialogSheets("Solver_dialog").OptionButtons("min_button").Value = xlOn
+         'solver_typ = 2
+       Case "=3"
+         ThisWorkbook.DialogSheets("Solver_dialog").EditBoxes("dValueof").Enabled = True
+         ThisWorkbook.DialogSheets("Solver_dialog").OptionButtons("value_button").Value = xlOn
+         'solver_typ = 3
+    End Select
+    ThisWorkbook.DialogSheets("Solver_dialog").ListBoxes("Constraint_list").RemoveAllItems
+    For i = 1 To CDbl(Mid(CStr(ActiveSheet.Names("solver_num")), 2))
+       the_left = Mid(CStr(ActiveSheet.Names("solver_lhs" & Trim(Str(i)))), 2)
+       the_left = GetName(Range(the_left).Address)
+       If Len(the_left) > 120 Then
+          the_left = Range(the_left).Address
+       End If
+       mid_ind = CDbl(Mid(CStr(ActiveSheet.Names("solver_rel" & Trim(Str(i)))), 2))
+       If mid_ind < 4 Then
+         the_right = Mid(CStr(ActiveSheet.Names("solver_rhs" & Trim(Str(i))).RefersToLocal), 2)
+         If Not IsNumeric(the_right) Then
+            On Error Resume Next
+            Err = 0
+            the_right = GetName(Range(the_right).Address)
+            If Err > 0 Then
+               ' formula
+               j = InStr(the_right, ActiveSheet.Name)
+               If j <> 0 Then
+                  If InStr(the_right, "'" & ActiveSheet.Name & "'!") <> 0 Then
+                     j = InStr(the_right, "'" & ActiveSheet.Name & "'!")
+                     Do While j <> 0
+                        the_right = Left(the_right, j - 1) & Right(the_right, Len(the_right) - j - Len(ActiveSheet.Name) - 2)
+                        j = InStr(the_right, "'" & ActiveSheet.Name & "'!")
+                     Loop
+                  Else
+                     Do While j <> 0
+                        the_right = Left(the_right, j - 1) & Right(the_right, Len(the_right) - j - Len(ActiveSheet.Name))
+                        j = InStr(the_right, ActiveSheet.Name)
+                     Loop
+                  End If
+               End If
+               If "." <> Application.International(xlDecimalSeparator) Then
+                  j = InStr(the_right, ".")
+                  Do While j <> 0
+                      Mid(the_right, j, 1) = Application.International(xlDecimalSeparator)
+                      j = InStr(the_right, ".")
+                  Loop
+               End If
+            Else
+               If Len(the_right) > 120 Then
+                  the_right = Mid(CStr(ActiveSheet.Names("solver_rhs" & Trim(Str(i)))), 2)
+                  If InStr(the_right, ActiveSheet.Name & "!") <> 0 Then
+                     If InStr(the_right, "'" & ActiveSheet.Name & "'!") <> 0 Then
+                        j = InStr(the_right, "'" & ActiveSheet.Name & "'!")
+                        the_right = Right(the_right, Len(the_right) - j - Len(ActiveSheet.Name) - 2)
+                     Else
+                        j = InStr(the_right, ActiveSheet.Name & "!")
+                        the_right = Right(the_right, Len(the_right) - j - Len(ActiveSheet.Name))
+                     End If
+                  End If
+               End If
+            End If
+         Else
+            the_right = CStr(CDbl(the_right))
+         End If
+         the_middle = ThisWorkbook.DialogSheets("Add_dialog").DropDowns("Options").List(mid_ind)
+       ElseIf mid_ind = 4 Then
+         the_right = GlobalX4Mess.Range("solver_msg_int").Formula
+         the_middle = "="
+       ElseIf mid_ind = 5 Then
+         the_right = GlobalX4Mess.Range("solver_msg_bin").Formula
+         the_middle = "="
+       ElseIf mid_ind = 6 Then
+         the_right = GlobalX4Mess.Range("solver_msg_dif").Formula
+         the_middle = "="
+       End If
+       newentry = the_left & " " & the_middle & " " & Trim(the_right)
+       If i > 1 Then
+          theindex = Search(newentry, 1, ThisWorkbook.DialogSheets("Solver_dialog").ListBoxes("Constraint_list").ListCount)
+       Else
+          theindex = 0
+       End If
+       If theindex = 0 Then
+          ThisWorkbook.DialogSheets("Solver_dialog").ListBoxes("Constraint_list").AddItem Text:=newentry
+       Else
+          ThisWorkbook.DialogSheets("Solver_dialog").ListBoxes("Constraint_list").AddItem Text:=newentry, Index:=theindex
+       End If
+    Next
+    On Error Resume Next
+    dummy = CStr(ActiveSheet.Names("solver_neg"))
+    If dummy = "=1" Then
+       ThisWorkbook.DialogSheets("Solver_dialog").CheckBoxes("nonneg") = True
+    Else
+       ThisWorkbook.DialogSheets("Solver_dialog").CheckBoxes("nonneg") = False
+    End If
+    If Err > 0 Then
+       ThisWorkbook.DialogSheets("Solver_dialog").CheckBoxes("nonneg") = True
+       Err = 0
+    End If
+    dmy = Mid(CStr(ActiveSheet.Names("solver_eng")), 2)
+    If Err = 0 Then
+       ThisWorkbook.DialogSheets("Solver_dialog").DropDowns("EngineList").ListIndex = dmy
+    Else
+        dmy = Mid(CStr(ActiveSheet.Names("solver_lin")), 2)
+        If dmy = 1 Then
+            ThisWorkbook.DialogSheets("Solver_dialog").DropDowns("EngineList").ListIndex = 2
+        Else
+            ThisWorkbook.DialogSheets("Solver_dialog").DropDowns("EngineList").ListIndex = 1
+        End If
+    End If
+    
+    GetOptionSettings
+    
+    Exit Sub
+mainerror:
+    DisplayMessage "solver_err_msg", 1830, 32
+    End
+errortrap:
+    noproblem = False
+    Resume Next
+End Sub
+
+Public Sub Define_names()
+    ' defines necessary names for solver
+    On Error GoTo mainerror
+    Dim update As Boolean, solver_typ As Integer
+    Dim solver_opt As String, solver_adj As String, solver_neg As Integer
+    update = Application.ScreenUpdating
+    Application.ScreenUpdating = False
+    solver_opt = Obj
+    solver_adj = Adjustables
+    If ThisWorkbook.DialogSheets("Solver_dialog").OptionButtons("max_button").Value = xlOn Then
+       solver_typ = 1
+    ElseIf ThisWorkbook.DialogSheets("Solver_dialog").OptionButtons("min_button").Value = xlOn Then
+       solver_typ = 2
+    Else
+       solver_typ = 3
+    End If
+    With ActiveSheet.Names
+    If solver_opt = "" Then
+       On Error Resume Next
+       ActiveSheet.Names("solver_opt").Delete
+    Else
+       .Add Name:="solver_opt", RefersTo:="=" & solver_opt, Visible:=False
+    End If
+    If solver_adj = "" Then
+       On Error Resume Next
+       ActiveSheet.Names("solver_adj").Delete
+       On Error GoTo mainerror
+    Else
+       .Add Name:="solver_adj", RefersTo:="=" & solver_adj, Visible:=False
+    End If
+    .Add Name:="solver_typ", RefersTo:=solver_typ, Visible:=False
+    GlobalTyp = solver_typ
+    .Add Name:="solver_val", RefersToLocal:=ThisWorkbook.DialogSheets("solver_dialog").EditBoxes("dvalueof").Text, Visible:=False
+    .Add Name:="solver_num", RefersTo:=ThisWorkbook.DialogSheets("solver_dialog").ListBoxes("Constraint_list").ListCount, Visible:=False
+    '.Add Name:="solver_tim", RefersTo:=CDbl(ThisWorkbook.DialogSheets("Options_dialog").EditBoxes("Max_time").Caption), Visible:=False
+    '.Add Name:="solver_itr", RefersTo:=CDbl(ThisWorkbook.DialogSheets("Options_dialog").EditBoxes("Max_iter").Caption), Visible:=False
+    '.Add Name:="solver_pre", RefersToLocal:=CDbl(ThisWorkbook.DialogSheets("Options_dialog").EditBoxes("Precision").Caption), Visible:=False
+    '.Add Name:="solver_tol", RefersToLocal:=CDbl(ThisWorkbook.DialogSheets("Options_dialog").EditBoxes("Tolerance").Caption) / 100, Visible:=False
+    '.Add Name:="solver_cvg", RefersToLocal:=CDbl(ThisWorkbook.DialogSheets("Options_dialog").EditBoxes("Convergence").Caption), Visible:=False
+    'If ThisWorkbook.DialogSheets("Options_dialog").CheckBoxes("assume").Value = xlOn Then
+    '   solver_lin = 1
+    'Else
+    '   solver_lin = 2
+    'End If
+    '.Add Name:="solver_lin", RefersTo:=solver_lin, Visible:=False
+    .Add Name:="solver_eng", RefersTo:=ThisWorkbook.DialogSheets("Solver_dialog").DropDowns("EngineList").ListIndex, Visible:=False
+    If ThisWorkbook.DialogSheets("Solver_dialog").CheckBoxes("NonNeg").Value = xlOn Then
+       solver_neg = 1
+    Else
+       solver_neg = 2
+    End If
+    .Add Name:="solver_neg", RefersTo:=solver_neg, Visible:=False
+    .Add Name:="solver_ver", RefersToLocal:=3, Visible:=False
+    'If ThisWorkbook.DialogSheets("Options_dialog").CheckBoxes("Show_iter").Value = xlOn Then
+    '   solver_sho = 1
+    'Else
+    '   solver_sho = 2
+    'End If
+    '.Add Name:="solver_sho", RefersTo:=solver_sho, Visible:=False
+    'If ThisWorkbook.DialogSheets("Options_dialog").CheckBoxes("auto_scl").Value = xlOn Then
+    '   solver_scl = 1
+    'Else
+    '   solver_scl = 2
+    'End If
+    '.Add Name:="solver_scl", RefersTo:=solver_scl, Visible:=False
+    'If ThisWorkbook.DialogSheets("Options_dialog").OptionButtons("Tangent").Value = xlOff Then
+    '   solver_est = 2
+    'Else
+    '   solver_est = 1
+    'End If
+    '.Add Name:="solver_est", RefersTo:=solver_est, Visible:=False
+    'If ThisWorkbook.DialogSheets("Options_dialog").OptionButtons("Forward").Value = xlOff Then
+    '   solver_drv = 2
+    'Else
+    '   solver_drv = 1
+    'End If
+    '.Add Name:="solver_drv", RefersTo:=solver_drv, Visible:=False
+    'If ThisWorkbook.DialogSheets("Options_dialog").OptionButtons("Newton").Value = xlOff Then
+    '   solver_nwt = 2
+    'Else
+    '   solver_nwt = 1
+    'End If
+    '.Add Name:="solver_nwt", RefersTo:=solver_nwt, Visible:=False
+    End With
+    Application.ScreenUpdating = update
+    Exit Sub
+mainerror:
+    DisplayMessage "solver_err_msg", 1830, 32
+    End
+End Sub
+
+Public Static Function Valid_constraint(do_msg)
+    ' validates constraint and saves it if valid
+    On Error GoTo mainerror
+    Dim number_of_lhs As Long, number_of_rhs As Long, the_right As String
+    Dim Right_ind As String, the_option As Long, the_left As String, the_middle As String
+    Dim rel_ind As Long, newentry As String, theindex As Long, i As Long, thecount As Long
+    With ThisWorkbook.DialogSheets("Add_dialog")
+    If .EditBoxes("lhs").Caption = "" Then
+         If do_msg Then
+            DisplayMessage "solver_msg_20", 1830, 32
+            .Focus = .EditBoxes("lhs").Name
+         End If
+         Valid_constraint = False
+         Exit Function
+    End If
+    If InStr(.EditBoxes("lhs").Caption, "!") <> 0 And _
+       InStr(.EditBoxes("lhs").Caption, ActiveSheet.Name) = 0 Then
+           If do_msg Then
+             DisplayMessage "solver_msg_20", 1830, 32
+            .Focus = .EditBoxes("lhs").Name
+         End If
+         Valid_constraint = False
+         Exit Function
+    End If
+    On Error Resume Next
+    If Range(Stylecheck(.EditBoxes("lhs").Caption)).Areas.Count > 1 Then
+         If do_msg Then
+            DisplayMessage "solver_msg_20", 1830, 32
+            .Focus = .EditBoxes("lhs").Name
+         End If
+         Valid_constraint = False
+         Exit Function
+    End If
+    On Error GoTo mainerror
+    Application.ScreenUpdating = False
+    number_of_lhs = Range(Stylecheck(.EditBoxes("lhs").Caption)).Count
+    the_option = .DropDowns("Options").ListIndex
+    If Application.ReferenceStyle = xlA1 Then
+       .EditBoxes("rhs").Caption = Application.ConvertFormula(.EditBoxes("rhs").Caption, Application.ReferenceStyle, Application.ReferenceStyle, xlAbsolute)
+    End If
+    If IsCellReference(Stylecheck(.EditBoxes("rhs").Caption)) Then
+       number_of_rhs = Range(Stylecheck(.EditBoxes("rhs").Caption)).Count
+       If number_of_rhs = 0 Then
+          If do_msg Then
+              DisplayMessage "solver_msg_21", 1830, 32
+             .Focus = .EditBoxes("rhs").Name
+          End If
+          Valid_constraint = False
+          Application.ScreenUpdating = True
+          Exit Function
+       ElseIf number_of_rhs <> number_of_lhs And number_of_rhs > 1 Then
+          If do_msg Then
+             DisplayMessage "solver_msg_22", 1830, 32
+             .Focus = .EditBoxes("rhs").Name
+          End If
+          Valid_constraint = False
+          Application.ScreenUpdating = True
+          Exit Function
+       End If
+       the_right = .EditBoxes("rhs").Caption
+       If Left(the_right, 1) = "=" Then
+          the_right = GetName(Right(the_right, Len(the_right) - 1))
+       Else
+          the_right = GetName(the_right)
+       End If
+       If Len(the_right) > 120 Then
+          the_right = .EditBoxes("rhs").Caption
+       End If
+    Else
+       If IsCellRef(Stylecheck(.EditBoxes("rhs").Caption)) Then
+          If do_msg Then
+               DisplayMessage "solver_msg_21", 1830, 32
+               .Focus = .EditBoxes("rhs").Name
+          End If
+          Valid_constraint = False
+          Application.ScreenUpdating = True
+          Exit Function
+       End If
+       On Error Resume Next
+       Dim b1 As Boolean, b2 As Boolean, b3 As Boolean
+       b1 = ((.EditBoxes("rhs").Caption = GlobalX4Mess.Range("solver_msg_int").Formula _
+            Or .EditBoxes("rhs").Caption = "=" & GlobalX4Mess.Range("solver_msg_int").Formula) _
+            And .DropDowns("options").List(the_option) = GlobalX4Mess.Range("solver_int").Text)
+       b2 = ((.EditBoxes("rhs").Caption = GlobalX4Mess.Range("solver_msg_bin").Formula Or _
+            .EditBoxes("rhs").Caption = "=" & GlobalX4Mess.Range("solver_msg_bin").Formula) And _
+            .DropDowns("options").List(the_option) = GlobalX4Mess.Range("solver_bin").Text)
+       b3 = ((.EditBoxes("rhs").Caption = GlobalX4Mess.Range("solver_msg_dif").Formula Or _
+            .EditBoxes("rhs").Caption = "=" & GlobalX4Mess.Range("solver_msg_dif").Formula) And _
+            .DropDowns("options").List(the_option) = GlobalX4Mess.Range("solver_dif").Text)
+    '   If Not IsNumeric(Application.Evaluate((Stylecheck(.EditBoxes("rhs").Caption)))) Then
+       If Not IsNumeric(Stylecheck(.EditBoxes("rhs").Caption)) Then
+         If Not (b1 Or b2 Or b3) Then
+            If Not IsNumeric(Application.Evaluate((Stylecheck(.EditBoxes("rhs").Caption)))) Then
+               If do_msg Then
+                  DisplayMessage "solver_msg_21", 1830, 32
+                  .Focus = .EditBoxes("rhs").Name
+               End If
+               Valid_constraint = False
+               Application.ScreenUpdating = True
+               Exit Function
+            Else
+               If Left(.EditBoxes("rhs").Caption, 1) = "=" Then
+                 the_right = .EditBoxes("rhs").Caption
+               Else
+                 the_right = "=" & .EditBoxes("rhs").Caption
+               End If
+            End If
+         Else
+            the_right = Application.ConvertFormula(.EditBoxes("rhs").Caption, Application.ReferenceStyle, Application.ReferenceStyle, xlAbsolute)
+         End If
+       Else
+        If Left(.EditBoxes("rhs").Caption, 1) = "=" Then
+            the_right = .EditBoxes("rhs").Caption
+         Else
+            the_right = "=" & .EditBoxes("rhs").Caption
+         End If
+       End If
+    End If
+    the_left = Range(Stylecheck(.EditBoxes("lhs").Caption)).Address
+    the_left = GetName(Range(the_left).Address)
+    If Len(the_left) > 120 Then
+       the_left = Range(the_left).Address
+    End If
+    the_middle = .DropDowns("options").List(the_option)
+    rel_ind = .DropDowns("options").ListIndex
+    Dim fTheRightNeedsEscaping As Boolean
+    fTheRightNeedsEscaping = False
+    If the_middle = GlobalX4Mess.Range("solver_int").Text Or the_middle = GlobalX4Mess.Range("solver_bin").Text _
+          Or the_middle = GlobalX4Mess.Range("solver_dif").Text Then
+       On Error Resume Next
+       If Range(ActiveSheet.Names("solver_adj").Name).Count <> _
+          Union(Range(Stylecheck(the_left)), Range(ActiveSheet.Names("solver_adj").Name)).Count Then
+          If do_msg Then
+             If the_middle = GlobalX4Mess.Range("solver_int").Text Then
+                DisplayMessage "solver_msg_23", 1830, 32
+             ElseIf the_middle = GlobalX4Mess.Range("solver_bin").Text Then
+                DisplayMessage "solver_msg_24", 1830, 32
+             Else
+                DisplayMessage "solver_msg_23a", 1830, 32
+             End If
+             .Focus = .EditBoxes("lhs").Name
+          End If
+          Valid_constraint = False
+          Application.ScreenUpdating = True
+          Exit Function
+       Else
+          fTheRightNeedsEscaping = True
+          If the_middle = GlobalX4Mess.Range("solver_int").Text Then
+             the_right = GlobalX4Mess.Range("solver_msg_int").Formula
+          ElseIf the_middle = GlobalX4Mess.Range("solver_bin").Text Then
+             the_right = GlobalX4Mess.Range("solver_msg_bin").Formula
+          Else
+             the_right = GlobalX4Mess.Range("solver_msg_dif").Formula
+          End If
+       End If
+       the_middle = "="
+    End If
+    If Left(the_right, 1) = "=" Then
+       the_right = Right(the_right, Len(the_right) - 1)
+    End If
+    If Len(the_right) > 120 Then
+       If do_msg Then
+           DisplayMessage "solver_msg_151", 1830, 32
+          .Focus = .EditBoxes("rhs").Name
+       End If
+       Valid_constraint = False
+       Application.ScreenUpdating = True
+       Exit Function
+    End If
+    If GlobalChange Then
+       Delete_constraint
+    End If
+    newentry = the_left & " " & the_middle & " " & the_right
+    theindex = 0
+    For i = 1 To Trim(Str(ThisWorkbook.DialogSheets("Solver_dialog").ListBoxes("Constraint_list").ListCount))
+      If newentry < ThisWorkbook.DialogSheets("Solver_dialog").ListBoxes("Constraint_list").List(i) Then
+         theindex = i
+         Exit For
+      End If
+    Next
+    If theindex = 0 Then
+       ThisWorkbook.DialogSheets("Solver_dialog").ListBoxes("Constraint_list").AddItem Text:=newentry
+    Else
+       ThisWorkbook.DialogSheets("Solver_dialog").ListBoxes("Constraint_list").AddItem Text:=newentry, Index:=theindex
+    End If
+    ' update define names
+    With ActiveSheet.Names
+    thecount = ThisWorkbook.DialogSheets("Solver_dialog").ListBoxes("Constraint_list").ListCount
+    .Add Name:="solver_num", RefersTo:=ThisWorkbook.DialogSheets("solver_dialog").ListBoxes("Constraint_list").ListCount, Visible:=False
+    .Add Name:="solver_lhs" & thecount, RefersTo:="=" & Range(Stylecheck(the_left)).Address, Visible:=False
+    .Add Name:="solver_rel" & thecount, RefersTo:=rel_ind, Visible:=False
+    If IsCellReference(Stylecheck(the_right)) Then
+       Right_ind = ""
+       On Error Resume Next
+       Right_ind = Names(the_right).RefersTo
+       If Right_ind = "" Then
+          .Add Name:="solver_rhs" & thecount, RefersTo:="=" & the_right, Visible:=False
+       Else
+          .Add Name:="solver_rhs" & thecount, RefersTo:=Right_ind, Visible:=False
+       End If
+    ElseIf (fTheRightNeedsEscaping) Then
+       .Add Name:="solver_rhs" & thecount, RefersToLocal:="=""" & EscapeQuotes(the_right) & """", Visible:=False
+    Else
+       .Add Name:="solver_rhs" & thecount, RefersToLocal:="=" & the_right, Visible:=False
+    End If
+    Valid_constraint = True
+    If do_msg Then
+       If InStr(the_right, Chr(34)) = 0 Then
+          Application.RecordMacro basiccode:=GlobalX4Mess.Range("addfunc").Text & " " & GlobalX4Mess.Range("addarg1").Text & ":=" & Chr(34) & Range(Stylecheck(the_left)).Address(ReferenceStyle:=GlobalR1C1) & Chr(34) & ", " & GlobalX4Mess.Range("addarg2").Text & ":=" & rel_ind & ", " & GlobalX4Mess.Range("addarg3").Text & ":=" & Chr(34) & the_right & Chr(34)
+       Else
+          Application.RecordMacro basiccode:=GlobalX4Mess.Range("addfunc").Text & " " & GlobalX4Mess.Range("addarg1").Text & ":=" & Chr(34) & Range(Stylecheck(the_left)).Address(ReferenceStyle:=GlobalR1C1) & Chr(34) & ", " & GlobalX4Mess.Range("addarg2").Text & ":=" & rel_ind & ", " & GlobalX4Mess.Range("addarg3").Text & ":=" & Chr(34) & Namefix(the_right) & Chr(34)
+       End If
+    End If
+    End With
+    End With
+    Exit Function
+mainerror:
+    DisplayMessage "solver_err_msg", 1830, 32
+    End
+End Function
+
+Public Sub Constraint_sign()
+    ' user changes middle of constraint
+    On Error GoTo mainerror
+    Select Case ThisWorkbook.DialogSheets("Add_dialog").DropDowns("Options").ListIndex
+    Case 1, 2, 3
+       If ThisWorkbook.DialogSheets("Add_dialog").EditBoxes("rhs").Caption = "=" & GlobalX4Mess.Range("solver_msg_int").Formula _
+        Or ThisWorkbook.DialogSheets("Add_dialog").EditBoxes("rhs").Caption = "=" & GlobalX4Mess.Range("solver_msg_bin").Formula _
+        Or ThisWorkbook.DialogSheets("Add_dialog").EditBoxes("rhs").Caption = "=" & GlobalX4Mess.Range("solver_msg_dif").Formula Then
+          ThisWorkbook.DialogSheets("Add_dialog").EditBoxes("rhs").Caption = ""
+       End If
+       ThisWorkbook.DialogSheets("Add_dialog").Focus = ThisWorkbook.DialogSheets("Add_dialog").EditBoxes("rhs").Name
+    Case 4
+       ThisWorkbook.DialogSheets("Add_dialog").EditBoxes("rhs").Caption = GlobalX4Mess.Range("solver_msg_int").Formula
+    Case 5
+       ThisWorkbook.DialogSheets("Add_dialog").EditBoxes("rhs").Caption = GlobalX4Mess.Range("solver_msg_bin").Formula
+    Case 6
+       ThisWorkbook.DialogSheets("Add_dialog").EditBoxes("rhs").Caption = GlobalX4Mess.Range("solver_msg_dif").Formula
+    End Select
+    Exit Sub
+mainerror:
+    DisplayMessage "solver_err_msg", 1830, 32
+    End
+End Sub
+
+Public Sub LoadSave()
+     ThisWorkbook.DialogSheets("Save_dialog").Labels("loadlabel2").Caption = GlobalX4Mess.Range("solv_dlg4_select1").Text & _
+        (4 + ThisWorkbook.DialogSheets("solver_dialog").ListBoxes("Constraint_list").ListCount)
+  
+    ThisWorkbook.DialogSheets("Save_dialog").EditBoxes("the_area").Text = Selection.Address(ReferenceStyle:=GlobalR1C1)
+    ThisWorkbook.DialogSheets("Save_dialog").Show
+End Sub
+
+Public Sub SolveModel()
+    Dim savestatusbar As Boolean
+    Dim savecalc As Integer, i As Integer, c
+    
+    'validation of objective
+    Dim strObj As String
+    strObj = ThisWorkbook.DialogSheets("Solver_dialog").EditBoxes("Optimum_cell").Text
+    If strObj <> "" Then
+       On Error Resume Next
+       If Range(Stylecheck(strObj)).Count <> 1 Or Range(Stylecheck(strObj)).Worksheet.Name <> ActiveSheet.Name Then
+          DisplayMessage "solver_msg_7", 1830, 0
+          ThisWorkbook.DialogSheets("Solver_dialog").EditBoxes("Optimum_cell").SetFocus
+          On Error GoTo 0
+          Exit Sub
+       End If
+    End If
+    'Define_names
+    DefineModel
+    SaveOptions
+    If SolverCls Is Nothing Then
+        Set SolverCls = New SolverCalls
+    End If
+    SolverCls.UDF = ""
+    If Problem_ok() Then
+       Application.ScreenUpdating = False
+       savestatusbar = Application.DisplayStatusBar
+       Application.DisplayStatusBar = True
+       savecalc = Application.Calculation
+       Application.Calculation = xlCalculationManual
+           
+       On Error Resume Next
+       If strObj = "" Then
+          GlobalOldObj = CVErr(xlErrNA)
+       Else
+          GlobalOldObj = Range(ActiveSheet.Names("solver_opt").Name).Value
+          GlobalOldObjFormat = Range(ActiveSheet.Names("solver_opt").Name).NumberFormat
+       End If
+       ReDim GlobalOldVars(Range("solver_adj").Cells.Count)
+       ReDim GlobalOldVarFormats(Range("solver_adj").Cells.Count)
+       i = 1
+       For Each c In Range("solver_adj").Cells
+           GlobalOldVars(i) = c.Value
+           GlobalOldVarFormats(i) = c.NumberFormat
+           i = i + 1
+       Next
+            
+       GlobalAnswer = SolverCls.Solve(0)
+       Application.RecordMacro basiccode:=GlobalX4Mess.Range("solvefunc").Text
+       Application.DisplayStatusBar = savestatusbar
+       Application.StatusBar = False
+       Application.ScreenUpdating = True
+       If Application.Calculation <> savecalc Then
+            Application.Calculation = savecalc
+       End If
+       dlgFinish.Show
+    Else
+       Action = ""
+    End If
+End Sub
+
+Public Sub ResetDialog()
+    With ThisWorkbook.DialogSheets("Solver_dialog")
+        .EditBoxes("Optimum_cell").Text = ""
+        .EditBoxes("Adjustable_cells").Caption = ""
+        .ListBoxes("Constraint_list").RemoveAllItems
+        .OptionButtons("max_button").Value = xlOn
+        .EditBoxes("dValueof").Text = CStr(0)
+        .CheckBoxes("nonneg") = True
+        .EditBoxes("dValueof").Enabled = False
+    End With
+    SetOptionDefaults
+    On Error Resume Next
+    'Define_names
+    DefineModel
+    ActiveSheet.Names("solver_adj").Delete
+    ActiveSheet.Names("solver_opt").Delete
+    With ActiveSheet.Names
+       .Add Name:="solver_num", RefersTo:=ThisWorkbook.DialogSheets("solver_dialog").ListBoxes("Constraint_list").ListCount, Visible:=False
+    End With
+    ThisWorkbook.DialogSheets("Solver_dialog").Focus = ThisWorkbook.DialogSheets("Solver_dialog").EditBoxes("Optimum_cell").Name
+End Sub
+
+Sub btnHelp_Click()
+    'help for the main Solver Parameters dialog
+    On Error GoTo mainerror
+    Application.Help GlobalHelpfile, 1830
+    Exit Sub
+mainerror:
+    DisplayMessage "solver_err_msg", 1830, 32
+    End
+End Sub

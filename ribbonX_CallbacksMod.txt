@@ -1,0 +1,11 @@
+Option Explicit
+
+'Callback for RibbonX screentip
+Public Sub GetSolverScreentip(control As IRibbonControl, ByRef returnedVal)
+    returnedVal = ThisWorkbook.Worksheets(fnGetLCID()).Range("Screentip").Text
+End Sub
+
+'Callback for Ribbonx Supertip
+Public Sub GetSolverSupertip(control As IRibbonControl, ByRef returnedVal)
+    returnedVal = ThisWorkbook.Worksheets(fnGetLCID()).Range("Supertip").Text
+End Sub

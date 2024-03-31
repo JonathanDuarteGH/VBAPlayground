@@ -1,0 +1,65 @@
+Option Explicit
+
+Private Const c_sSolverFolder As String = "Solver"
+
+#If VBA7 Then
+Private Declare PtrSafe Function Solv Lib "Solver32.dll" (ByVal object, ByVal app, ByVal wkb, ByVal x As Long) As Long
+Private Declare PtrSafe Function SetDllDirectory Lib "kernel32.dll" Alias "SetDllDirectoryA" (ByVal lpNewDirectory As String) As Boolean
+Private Declare PtrSafe Function GetDllDirectory Lib "kernel32.dll" Alias "GetDllDirectoryA" (ByVal cBufferLength As Long, ByVal lpOldDirectory As String) As Long
+#Else
+Private Declare Function Solv Lib "Solver32.dll" (ByVal object, ByVal app, ByVal wkb, ByVal x As Long) As Long
+Private Declare Function SetDllDirectory Lib "kernel32.dll" Alias "SetDllDirectoryA" (ByVal lpNewDirectory As String) As Boolean
+Private Declare Function GetDllDirectory Lib "kernel32.dll" Alias "GetDllDirectoryA" (ByVal cBufferLength As Long, ByVal lpOldDirectory As String) As Long
+#End If
+
+Public UDF As String
+
+Function Solve(x As Long) As Long
+    Solve = 9 'Default error value
+    Dim strCurDir As String
+    
+    Const cMaxPathBuffer = 1024
+    Dim strBufDllDirectoryPrev As String * 1024
+    Dim strDllDirectoryPrev As String
+    Dim cDllDirectoryPrev As Long
+    cDllDirectoryPrev = GetDllDirectory(cMaxPathBuffer, strBufDllDirectoryPrev)
+    If (cDllDirectoryPrev = 0) Then
+        If (Err.LastDllError <> 0) Then
+            'GetDllDirectory failed
+            GoTo Done
+        End If
+    ElseIf (cDllDirectoryPrev >= cMaxPathBuffer Or cDllDirectoryPrev < 0) Then
+        'GetDllDirectory truncated its result or overflowed on cast from unsigned
+        GoTo Done
+    End If
+    
+    strDllDirectoryPrev = Left(strBufDllDirectoryPrev, InStr(strBufDllDirectoryPrev, Chr$(0)) - 1)
+    
+    strCurDir = CurDir
+    Dim sDllPath As String
+    sDllPath = Application.LibraryPath & Application.PathSeparator & c_sSolverFolder
+    Dim fSetDirectory As Boolean
+    fSetDirectory = False
+    ChDir (sDllPath)
+    ChDrive (sDllPath)
+    fSetDirectory = SetDllDirectory(sDllPath)
+    Solve = Solv(Me, Application, ThisWorkbook, x)
+    
+    If (fSetDirectory) Then
+        SetDllDirectory strDllDirectoryPrev
+    End If
+    
+    ChDir (strCurDir)
+    ChDrive (strCurDir)
+Done:
+    If IsError(Solve) Then Solve = 9
+    If x = 0 Then GlobalAnswer = Solve
+End Function
+
+Function Callback(x As Integer) As Long
+     If UDF = "" Then
+        Callback = Showme(x)
+     Else
+        Callback = Application.Run("'" & ActiveWorkbook.Name & "'!" & UDF, x)
+     End If
+End Function

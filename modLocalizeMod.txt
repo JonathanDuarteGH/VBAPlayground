@@ -1,0 +1,53 @@
+Option Explicit
+Option Private Module
+
+Public Function fnGetLCID() As String
+    Dim szLcid As String, shTemp As Worksheet
+    
+    szLcid = CStr(Application.LanguageSettings.LanguageID(msoLanguageIDUI))
+    
+    On Error Resume Next
+    Set shTemp = ThisWorkbook.Worksheets(szLcid)
+    On Error GoTo 0
+    If shTemp Is Nothing Then szLcid = fnFallback(szLcid)
+    
+    fnGetLCID = szLcid
+End Function
+
+Public Function fnUpdateDialogFonts(frmDialog As UserForm)
+    Dim szFont As String
+    Dim ctl As control
+    
+    szFont = GlobalX4Mess.Range("Font").Text
+    
+    For Each ctl In frmDialog.Controls
+        If TypeOf ctl Is MSForms.label Then
+            ctl.Font.Name = szFont
+        ElseIf TypeOf ctl Is MSForms.CommandButton Then
+            ctl.Font.Name = szFont
+        ElseIf TypeOf ctl Is MSForms.OptionButton Then
+            ctl.Font.Name = szFont
+        ElseIf TypeOf ctl Is MSForms.ListBox Then
+            ctl.Font.Name = szFont
+        ElseIf TypeOf ctl Is MSForms.TextBox Then
+            ctl.Font.Name = szFont
+        ElseIf TypeOf ctl Is MSForms.Tab Then
+            ctl.Font.Name = szFont
+        ElseIf TypeOf ctl Is MSForms.CheckBox Then
+            ctl.Font.Name = szFont
+        ElseIf TypeOf ctl Is MSForms.Frame Then
+            ctl.Font.Name = szFont
+        End If
+    Next
+End Function
+
+Public Function fnFallback(szLcid As String) As String
+    If szLcid = "1027" Or szLcid = "1069" Or szLcid = "1110" Then
+        fnFallback = "3082"     'es-es Spanish
+    ElseIf szLcid = "2068" Then
+        fnFallback = "1044"     'nb-no Norwegian
+    Else
+        fnFallback = "1033"     'en-us English
+    End If
+End Function
+

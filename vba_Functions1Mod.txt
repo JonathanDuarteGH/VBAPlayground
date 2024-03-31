@@ -1,0 +1,543 @@
+
+
+Option Explicit
+
+' this module contains all VBA functions the users can use in their macros.
+' This is the place where localization should take place.
+' NOTE: For localization to work with recording macros, the function names
+'       here must be the same as the names on the Language sheet, starting
+'       at A197, including parameters
+' NOTE: Localization does not work with recorded macros as of O15. The
+'       Recorded macro terms will be in english, and are stored at A275.
+' On the Excel4Functions sheet, the user functions are outlined in blue, and
+' the first cell in each of these must be renamed for localization for
+' backwards compatibility.
+' The 2 dialogs on the Excel4Functions should also be localized.
+'
+
+'
+' French - 1036
+'
+Function SolveurAjouter(r馭_Cellule As Variant, Relation As Integer, Optional formule As Variant) As Variant
+    SolveurAjouter = SolvAdd(r馭_Cellule, Relation, formule)
+End Function
+
+Function SolveurModifier(r馭_Cellule As Variant, Relation As Integer, Optional formule As Variant) As Variant
+    SolveurModifier = SolvChange(r馭_Cellule, Relation, formule)
+End Function
+
+Function SolveurSupprimer(r馭_Cellule As Variant, Relation As Integer, Optional formule As Variant) As Variant
+    SolveurSupprimer = SolvDelete(r馭_Cellule, Relation, formule)
+End Function
+
+Function SolveurFinir(Optional garderFinales As Variant, Optional Rapport As Variant) As Variant
+    SolveurFinir = SolvFinish(garderFinales, Rapport)
+End Function
+
+Function Bo羡eDialogueSolveurFinir(Optional garderFinales As Variant, Optional Rapport As Variant) As Variant
+    Bo羡eDialogueSolveurFinir = SolvFinishDialog(garderFinales, Rapport)
+End Function
+
+Function SolveurLire(noType As Integer, Optional nomFeuille As Variant) As Variant
+    SolveurLire = SolvGet(noType, nomFeuille)
+End Function
+
+Function SolveurCharger(chargeMod鑞e As Variant) As Variant
+    SolveurCharger = SolvLoad(chargeMod鑞e)
+End Function
+
+Function SolveurOk(Optional celluleD馭inir As Variant, Optional valMaxMin As Variant, Optional valeur As Variant, Optional celluleVariable As Variant) As Variant
+    SolveurOk = SolvOk(celluleD馭inir, valMaxMin, valeur, celluleVariable)
+End Function
+
+Function Bo羡eDialogueSolveurOk(Optional celluleD馭inir As Variant, Optional valMaxMin As Variant, Optional valeur As Variant, Optional celluleVariable As Variant) As Variant
+    Bo羡eDialogueSolveurOk = SolvOkDialog(celluleD馭inir, valMaxMin, valeur, celluleVariable)
+End Function
+
+Function SolveurOptions(Optional tempsMax As Variant, Optional Iterations As Variant, Optional Precision As Variant, Optional lin饌ire As Variant, Optional logiqueAfficher As Variant, Optional estimations As Variant, Optional d駻iv馥s As Variant, Optional recherche As Variant, Optional tol駻ance As Variant, Optional echelle As Variant, Optional Convergence As Variant, Optional AssumeNonNeg As Variant) As Variant
+    SolveurOptions = SolvOptions(tempsMax, Iterations, Precision, lin饌ire, logiqueAfficher, estimations, d駻iv馥s, recherche, tol駻ance, echelle, Convergence, AssumeNonNeg)
+End Function
+
+Function SolveurR騁ablir() As Variant
+    SolveurR騁ablir = SolvReset
+End Function
+
+Function SolveurEnregistrer(enregistreMod鑞e As Variant) As Variant
+    SolveurEnregistrer = SolvSave(enregistreMod鑞e)
+End Function
+
+Function SolveurR駸oudre(Optional logiqueFinir As Variant, Optional r馭Macro As Variant) As Variant
+    SolveurR駸oudre = SolvSolve(logiqueFinir, r馭Macro)
+End Function
+'
+' Danish - 1030
+'
+Function ProblemlerTilf(cellereference As Variant, Forhold As Integer, Optional Formeltekst As Variant) As Variant
+    ProblemlerTilf = SolvAdd(cellereference, Forhold, Formeltekst)
+End Function
+
+Function Problemlerﾆndr(cellereference As Variant, Forhold As Integer, Optional Formeltekst As Variant) As Variant
+    Problemlerﾆndr = SolvChange(cellereference, Forhold, Formeltekst)
+End Function
+
+Function ProblemlerSlet(cellereference As Variant, Forhold As Integer, Optional Formeltekst As Variant) As Variant
+    ProblemlerSlet = SolvDelete(cellereference, Forhold, Formeltekst)
+End Function
+
+Function ProblemlerAfslut(Optional BeholdEndelig As Variant, Optional Rapportmatrix As Variant) As Variant
+    ProblemlerAfslut = SolvFinish(BeholdEndelig, Rapportmatrix)
+End Function
+
+Function ProblemlerAfslutDialogboks(Optional BeholdEndelig As Variant, Optional Rapportmatrix As Variant) As Variant
+    ProblemlerAfslutDialogboks = SolvFinishDialog(BeholdEndelig, Rapportmatrix)
+End Function
+
+Function ProblemlerIndl誑(Indl誑Omr蘚e As Variant) As Variant
+    ProblemlerIndl誑 = SolvLoad(Indl誑Omr蘚e)
+End Function
+
+Function ProblemlerOKDialogboks(Optional AngivCelle As Variant, Optional MaksMinV誡di As Variant, Optional V誡dienAf As Variant, Optional VedﾆndringAf As Variant) As Variant
+    ProblemlerOKDialogboks = SolvOkDialog(AngivCelle, MaksMinV誡di, V誡dienAf, VedﾆndringAf)
+End Function
+
+Function ProblemlerAlternativer(Optional MaksTid As Variant, Optional Gentagelser As Variant, Optional Pr訥ision As Variant, Optional AntagLine誡 As Variant, Optional G薺rinvistIgennem As Variant, Optional Sk As Variant, Optional Afledte As Variant, Optional SIndstilling As Variant, Optional IntTolerance As Variant, Optional Skalering As Variant, Optional Konvergens As Variant, Optional AssumeNonNeg As Variant) As Variant
+    ProblemlerAlternativer = SolvOptions(MaksTid, Gentagelser, Pr訥ision, AntagLine誡, G薺rinvistIgennem, Sk, Afledte, SIndstilling, IntTolerance, Skalering, Konvergens, AssumeNonNeg)
+End Function
+
+Function ProblemlerNulstil() As Variant
+    ProblemlerNulstil = SolvReset
+End Function
+
+Function ProblemlerGem(GemOmr蘚e As Variant) As Variant
+    ProblemlerGem = SolvSave(GemOmr蘚e)
+End Function
+
+
+'
+' Dutch - 1043
+'
+Function OplosserToevoegen(Celverw As Variant, Relatie As Integer, Optional Formuletekst As Variant) As Variant
+    OplosserToevoegen = SolvAdd(Celverw, Relatie, Formuletekst)
+End Function
+
+Function OplosserWijzigen(Celverw As Variant, Relatie As Integer, Optional Formuletekst As Variant) As Variant
+    OplosserWijzigen = SolvChange(Celverw, Relatie, Formuletekst)
+End Function
+
+Function OplosserVerwijderen(Celverw As Variant, Relatie As Integer, Optional Formuletekst As Variant) As Variant
+    OplosserVerwijderen = SolvDelete(Celverw, Relatie, Formuletekst)
+End Function
+
+Function OplosserBe・ndigen(Optional ResultaatBewaren As Variant, Optional Rapportmatrix As Variant) As Variant
+    OplosserBe・ndigen = SolvFinish(ResultaatBewaren, Rapportmatrix)
+End Function
+
+Function DialoogOplosserBe・ndigen(Optional ResultaatBewaren As Variant, Optional Rapportmatrix As Variant) As Variant
+    DialoogOplosserBe・ndigen = SolvFinishDialog(ResultaatBewaren, Rapportmatrix)
+End Function
+
+Function OplosserLezen(Typenummer As Integer, Optional Bladnaam As Variant) As Variant
+    OplosserLezen = SolvGet(Typenummer, Bladnaam)
+End Function
+
+Function OplosserLaden(GebeidLaden As Variant) As Variant
+    OplosserLaden = SolvLoad(GebeidLaden)
+End Function
+
+Function OplosserOk(Optional CelBepalen As Variant, Optional MaxMinWaarde As Variant, Optional WaardeVan As Variant, Optional DoorVerandering As Variant) As Variant
+    OplosserOk = SolvOk(CelBepalen, MaxMinWaarde, WaardeVan, DoorVerandering)
+End Function
+
+Function DialoogOplosserOk(Optional CelBepalen As Variant, Optional MaxMinWaarde As Variant, Optional WaardeVan As Variant, Optional DoorVerandering As Variant) As Variant
+    DialoogOplosserOk = SolvOkDialog(CelBepalen, MaxMinWaarde, WaardeVan, DoorVerandering)
+End Function
+
+Function OplosserOpties(Optional MaxTijd As Variant, Optional Iteraties As Variant, Optional Precisie As Variant, Optional LinearModel As Variant, Optional StapDoor As Variant, Optional Schattingen As Variant, Optional Afleidingen As Variant, Optional Zoekoptie As Variant, Optional IntTolerantie As Variant, Optional SchaalAanpassen As Variant, Optional Convergentie As Variant, Optional uitg_niet_neg As Variant) As Variant
+    OplosserOpties = SolvOptions(MaxTijd, Iteraties, Precisie, LinearModel, StapDoor, Schattingen, Afleidingen, Zoekoptie, IntTolerantie, SchaalAanpassen, Convergentie, uitg_niet_neg)
+End Function
+
+Function OplosserOpnieuw() As Variant
+    OplosserOpnieuw = SolvReset
+End Function
+
+Function OplosserOpslaan(GebeidOpslaan As Variant) As Variant
+    OplosserOpslaan = SolvSave(GebeidOpslaan)
+End Function
+
+Function OplosserOplossen(Optional GebrEinde As Variant, Optional VerwWeergeven As Variant) As Variant
+    OplosserOplossen = SolvSolve(GebrEinde, VerwWeergeven)
+End Function
+
+'
+' Finnish - 1035
+'
+Function RatkaisinLis蒿(Soluviitt As Variant, Suhde As Integer, Optional Kaava As Variant) As Variant
+    ThisWorkbook.Excel4MacroSheets(-1).Application
+End Function
+
+Function RatkaisinMuuta(Soluviitt As Variant, Suhde As Integer, Optional Kaava As Variant) As Variant
+    ThisWorkbook.Excel4MacroSheets(-1).Application
+End Function
+
+Function RatkaisinPoista(Soluviitt As Variant, Suhde As Integer, Optional Kaava As Variant) As Variant
+    ThisWorkbook.Excel4MacroSheets(-1).Application
+End Function
+
+Function RatkaisinLopeta(Optional S臺lyt・As Variant, Optional Raportti As Variant) As Variant
+    ThisWorkbook.Excel4MacroSheets(-1).Application
+End Function
+
+Function RatkaisinLopetaVIkkuna(Optional S臺lyt・As Variant, Optional Raportti As Variant) As Variant
+    ThisWorkbook.Excel4MacroSheets(-1).Application
+End Function
+
+Function RatkaisinNouda(TyyppiNro As Integer, Optional Taulukkonimi As Variant) As Variant
+    ThisWorkbook.Excel4MacroSheets(-1).Application
+End Function
+
+Function RatkaisinLataa(Latausalue As Variant) As Variant
+    ThisWorkbook.Excel4MacroSheets(-1).Application
+End Function
+
+Function RatkaisinOk(Optional M蒿rit膣olu As Variant, Optional MaksMinArvo As Variant, Optional Arvo As Variant, Optional Muuttaen As Variant) As Variant
+    ThisWorkbook.Excel4MacroSheets(-1).Application
+End Function
+
+Function RatkaisinOkVIkkuna(Optional M蒿rit膣olu As Variant, Optional MaksMinArvo As Variant, Optional Arvo As Variant, Optional Muuttaen As Variant) As Variant
+    ThisWorkbook.Excel4MacroSheets(-1).Application
+End Function
+
+Function RatkaisinValinnat(Optional MaksAika As Variant, Optional Iteraatiot As Variant, Optional Tarkkuus As Variant, Optional OletaLineaar As Variant, Optional Askelittain As Variant, Optional Arviot As Variant, Optional Derivaatat As Variant, Optional Etsint臑setus As Variant, Optional KoklukuToleranssi As Variant, Optional Skaalaus As Variant, Optional Konvergenssi As Variant, Optional OletaPositiivinen As Variant) As Variant
+    ThisWorkbook.Excel4MacroSheets(-1).Application
+End Function
+
+Function RatkaisinPalauta() As Variant
+    ThisWorkbook.Excel4MacroSheets(-1).Application
+End Function
+
+Function RatkaisinTallenna(Tallennusalue As Variant) As Variant
+    ThisWorkbook.Excel4MacroSheets(-1).Application
+End Function
+
+Function RatkaisinRatkaise(Optional Lopetus As Variant, Optional N艙t膩iitt As Variant) As Variant
+    ThisWorkbook.Excel4MacroSheets(-1).Application
+End Function
+
+'
+' Spanish - 3082
+'
+Function SolverAgregar(referenciaCelda As Variant, relaci As Integer, Optional Formula As Variant) As Variant
+    SolverAgregar = SolvAdd(referenciaCelda, relaci, Formula)
+End Function
+
+Function SolverCambiar(referenciaCelda As Variant, relaci As Integer, Optional Formula As Variant) As Variant
+    SolverCambiar = SolvChange(referenciaCelda, relaci, Formula)
+End Function
+
+Function SolverEliminar(referenciaCelda As Variant, relaci As Integer, Optional Formula As Variant) As Variant
+    SolverEliminar = SolvDelete(referenciaCelda, relaci, Formula)
+End Function
+
+Function SolverTerminar(Optional conservarResultado As Variant, Optional matrizDeInforme As Variant) As Variant
+    SolverTerminar = SolvFinish(conservarResultado, matrizDeInforme)
+End Function
+
+Function SolverTerminarDi疝ogo(Optional conservarResultado As Variant, Optional matrizDeInforme As Variant) As Variant
+    SolverTerminarDi疝ogo = SolvFinishDialog(conservarResultado, matrizDeInforme)
+End Function
+
+Function SolverInformaci(Tipo As Integer, Optional nombreHoja As Variant) As Variant
+    SolverInformaci = SolvGet(Tipo, nombreHoja)
+End Function
+
+Function SolverCargar(疵eaACargar As Variant) As Variant
+    SolverCargar = SolvLoad(疵eaACargar)
+End Function
+
+Function SolverAceptar(Optional definirCelda As Variant, Optional valorM痊M匤 As Variant, Optional valorDe As Variant, Optional celdasCambiantes As Variant) As Variant
+    SolverAceptar = SolvOk(definirCelda, valorM痊M匤, valorDe, celdasCambiantes)
+End Function
+
+Function SolverAceptarDi疝ogo(Optional definirCelda As Variant, Optional valorM痊M匤 As Variant, Optional valorDe As Variant, Optional celdasCambiantes As Variant) As Variant
+    SolverAceptarDi疝ogo = SolvOkDialog(definirCelda, valorM痊M匤, valorDe, celdasCambiantes)
+End Function
+
+Function SolverOpciones(Optional tiempoM痊imo As Variant, Optional iteraciones As Variant, Optional Precision As Variant, Optional estimaciLineal As Variant, Optional valorLicoPresentar As Variant, Optional estimaci As Variant, Optional derivaciones As Variant, Optional buscar As Variant, Optional tolerancia As Variant, Optional escala As Variant, Optional convergencia As Variant, Optional asumirNoNegativo As Variant) As Variant
+    SolverOpciones = SolvOptions(tiempoM痊imo, iteraciones, Precision, estimaciLineal, valorLicoPresentar, estimaci, derivaciones, buscar, tolerancia, escala, convergencia, asumirNoNegativo)
+End Function
+
+Function SolverRestablecer() As Variant
+    SolverRestablecer = SolvReset
+End Function
+
+Function SolverGuardar(guardarﾁrea As Variant) As Variant
+    SolverGuardar = SolvSave(guardarﾁrea)
+End Function
+
+Function SolverResolver(Optional resultadoDeseado As Variant, Optional resultadoIntermedio As Variant) As Variant
+    SolverResolver = SolvSolve(resultadoDeseado, resultadoIntermedio)
+End Function
+
+'
+' Italian - 1040
+'
+Function RisolutoreAggiungi(Rif As Variant, Relazione As Integer, Optional Formula As Variant) As Variant
+    RisolutoreAggiungi = SolvAdd(Rif, Relazione, Formula)
+End Function
+
+Function RisolutoreCambia(Rif As Variant, Relazione As Integer, Optional Formula As Variant) As Variant
+    RisolutoreCambia = SolvChange(Rif, Relazione, Formula)
+End Function
+
+Function RisolutoreElimina(Rif As Variant, Relazione As Integer, Optional Formula As Variant) As Variant
+    RisolutoreElimina = SolvDelete(Rif, Relazione, Formula)
+End Function
+
+Function RisolutoreMantieni(Optional Mantieni As Variant, Optional Rapporto As Variant) As Variant
+    RisolutoreMantieni = SolvFinish(Mantieni, Rapporto)
+End Function
+
+Function RisolutoreMantieniDialogo(Optional Mantieni As Variant, Optional Rapporto As Variant) As Variant
+    RisolutoreMantieniDialogo = SolvFinishDialog(Mantieni, Rapporto)
+End Function
+
+Function RisolutoreInfo(Tipo As Integer, Optional NomeFoglio As Variant) As Variant
+    RisolutoreInfo = SolvGet(Tipo, NomeFoglio)
+End Function
+
+Function RisolutoreCarica(AreaCarica As Variant) As Variant
+    RisolutoreCarica = SolvLoad(AreaCarica)
+End Function
+
+Function RisolutoreOk(Optional Cella As Variant, Optional MaxMin As Variant, Optional Val As Variant, Optional Cambiando As Variant) As Variant
+    RisolutoreOk = SolvOk(Cella, MaxMin, Val, Cambiando)
+End Function
+
+Function RisolutoreOkDialogo(Optional Cella As Variant, Optional MaxMin As Variant, Optional Val As Variant, Optional Cambiando As Variant) As Variant
+    RisolutoreOkDialogo = SolvOkDialog(Cella, MaxMin, Val, Cambiando)
+End Function
+
+Function RisolutoreOpzioni(Optional TempoMax As Variant, Optional Iter As Variant, Optional Appr As Variant, Optional Lineare As Variant, Optional Increm As Variant, Optional Stima As Variant, Optional Derivate As Variant, Optional Cerca As Variant, Optional Tolleranza As Variant, Optional Scala As Variant, Optional Convergenza As Variant, Optional NonNeg As Variant) As Variant
+    RisolutoreOpzioni = SolvOptions(TempoMax, Iter, Appr, Lineare, Increm, Stima, Derivate, Cerca, Tolleranza, Scala, Convergenza, NonNeg)
+End Function
+
+Function RisolutoreReimposta() As Variant
+    RisolutoreReimposta = SolvReset
+End Function
+
+Function RisolutoreSalva(AreaSalva As Variant) As Variant
+    RisolutoreSalva = SolvSave(AreaSalva)
+End Function
+
+Function RisolutoreRisolvi(Optional Fine As Variant, Optional MacroRif As Variant) As Variant
+    RisolutoreRisolvi = SolvSolve(Fine, MacroRif)
+End Function
+
+'
+' German - 1031
+'
+Function SolverHinzuf・en(Zellbezug As Variant, Beziehung As Integer, Optional Formel As Variant) As Variant
+    SolverHinzuf・en = SolvAdd(Zellbezug, Beziehung, Formel)
+End Function
+
+Function Solverﾄndern(Zellbezug As Variant, Beziehung As Integer, Optional Formel As Variant) As Variant
+    Solverﾄndern = SolvChange(Zellbezug, Beziehung, Formel)
+End Function
+
+Function SolverLchen(Zellbezug As Variant, Beziehung As Integer, Optional Formel As Variant) As Variant
+    SolverLchen = SolvDelete(Zellbezug, Beziehung, Formel)
+End Function
+
+Function SolverErgebnis(Optional Lung_verwenden As Variant, Optional Berichtsmatrix As Variant) As Variant
+    SolverErgebnis = SolvFinish(Lung_verwenden, Berichtsmatrix)
+End Function
+
+Function SolverErgebnisDialog(Optional Lung_verwenden As Variant, Optional Berichtsmatrix As Variant) As Variant
+    SolverErgebnisDialog = SolvFinishDialog(Lung_verwenden, Berichtsmatrix)
+End Function
+
+Function SolverInfo(Typ As Integer, Optional BlattName As Variant) As Variant
+    SolverInfo = SolvGet(Typ, BlattName)
+End Function
+
+Function SolverLaden(Modellbereich As Variant) As Variant
+    SolverLaden = SolvLoad(Modellbereich)
+End Function
+
+'Function SolverOk(Optional Zielzelle As Variant, Optional MaxMinWert As Variant, Optional Wert As Variant, Optional Ver舅derbareZellen As Variant) As Variant
+'    SolverOk = SolvOk(Zielzelle, MaxMinWert, Wert, Ver舅derbareZellen)
+'End Function
+
+'Function SolverOkDialog(Optional Zielzelle As Variant, Optional MaxMinWert As Variant, Optional Wert As Variant, Optional Ver舅derbareZellen As Variant) As Variant
+'    SolvOkDialog = SolvOkDialog(Zielzelle, MaxMinWert, Wert, Ver舅derbareZellen)
+'End Function
+
+Function SolverOptionen(Optional MaxZeit As Variant, Optional Iteration As Variant, Optional Genauigkeit As Variant, Optional LinearVoraussetzen As Variant, Optional IterSchritte As Variant, Optional Sch舩zung As Variant, Optional Differenz As Variant, Optional Suchen As Variant, Optional Toleranz As Variant, Optional Skalierung As Variant, Optional Konvergenz As Variant, Optional NichtNegAnnehm As Variant) As Variant
+    SolverOptionen = SolvOptions(MaxZeit, Iteration, Genauigkeit, LinearVoraussetzen, IterSchritte, Sch舩zung, Differenz, Suchen, Toleranz, Skalierung, Konvergenz, NichtNegAnnehm)
+End Function
+
+Function SolverZur・ksetzen() As Variant
+    SolverZur・ksetzen = SolvReset
+End Function
+
+Function SolverSpeichern(Modellbereich As Variant) As Variant
+    SolverSpeichern = SolvSave(Modellbereich)
+End Function
+
+Function SolverLen(Optional Ergebnis As Variant, Optional Zwischenergebnis As Variant) As Variant
+    SolverLen = SolvSolve(Ergebnis, Zwischenergebnis)
+End Function
+
+'
+' Norwegian - 1044
+'
+Function ProblemlerLeggtil(Celle As Variant, Forhold As Integer, Optional Formeltekst As Variant) As Variant
+    ProblemlerLeggtil = SolvAdd(Celle, Forhold, Formeltekst)
+End Function
+
+Function ProblemlerEndre(Celle As Variant, Forhold As Integer, Optional Formeltekst As Variant) As Variant
+    ProblemlerEndre = SolvChange(Celle, Forhold, Formeltekst)
+End Function
+
+Function ProblemlerSlett(Celle As Variant, Forhold As Integer, Optional Formeltekst As Variant) As Variant
+    ProblemlerSlett = SolvDelete(Celle, Forhold, Formeltekst)
+End Function
+
+Function ProblemlerAvslutt(Optional BeholdSluttverdi As Variant, Optional Rapportmatrise As Variant) As Variant
+    ProblemlerAvslutt = SolvFinish(BeholdSluttverdi, Rapportmatrise)
+End Function
+
+Function ProblemlerAvsluttDialogboks(Optional BeholdSluttverdi As Variant, Optional Rapportmatrise As Variant) As Variant
+    ProblemlerAvsluttDialogboks = SolvFinishDialog(BeholdSluttverdi, Rapportmatrise)
+End Function
+
+Function ProblemlerInfo(Typenum As Integer, Optional Arknavn As Variant) As Variant
+    ProblemlerInfo = SolvGet(Typenum, Arknavn)
+End Function
+
+Function ProblemlerHent(Optional HentOmr蘚e As Variant, Optional TypeNr As Variant, Optional Arknavn As Variant) As Variant
+    If Not IsMissing(HentOmr蘚e) And IsMissing(Arknavn) And fnGetLCID() = "1030" Then
+        'Danish
+        ProblemlerHent = SolvGet(CInt(HentOmr蘚e), TypeNr)
+    ElseIf Not IsMissing(HentOmr蘚e) And IsMissing(TypeNr) And IsMissing(Arknavn) Then
+        If fnGetLCID() = "1030" Then
+            'Danish
+            ProblemlerHent = SolvGet(CInt(HentOmr蘚e), TypeNr)
+        ElseIf fnGetLCID() = "1044" Then 'Should be norwegian
+            'Norwegian
+            ProblemlerHent = SolvLoad(HentOmr蘚e)
+        Else
+            'Fail, Danish needs integer.
+            Err.Raise (450)
+        End If
+    ElseIf Not IsMissing(TypeNr) And IsMissing(HentOmr蘚e) Then
+        If fnGetLCID() = "1030" Then
+            'Danish
+            ProblemlerHent = SolvGet(CInt(TypeNr), Arknavn)
+        Else
+            'Fail, TypeNr is Danish only, must be Integer.
+            Err.Raise (450)
+        End If
+    Else
+        'Fail
+        Err.Raise (450)
+    End If
+End Function
+
+Function ProblemlerOk(Optional M虱celle As Variant, Optional MaksMinVerdi As Variant, Optional Verdi As Variant, Optional Endre As Variant, Optional AngivCelle As Variant, Optional MaksMinV誡di As Variant, Optional V誡dienAf As Variant, Optional VedﾆndringAf As Variant) As Variant
+    If IsMissing(M虱celle) And IsMissing(MaksMinVerdi) And IsMissing(Verdi) And IsMissing(Endre) And fnGetLCID() = "1030" Then
+        'Danish Params, danish call
+        ProblemlerOk = SolvOk(AngivCelle, MaksMinV誡di, V誡dienAf, VedﾆndringAf)
+    ElseIf IsMissing(AngivCelle) And IsMissing(MaksMinV誡di) And IsMissing(V誡dienAf) And IsMissing(VedﾆndringAf) Then
+        'Norwegian Prams or defaults, norwegian call
+        ProblemlerOk = SolvOk(M虱celle, MaksMinVerdi, Verdi, Endre)
+    Else
+        'Fail, Wrong params
+        Err.Raise (450)
+    End If
+End Function
+
+Function ProblemlerDialogboksOk(Optional M虱celle As Variant, Optional MaksMinVerdi As Variant, Optional Verdi As Variant, Optional Endre As Variant) As Variant
+    ProblemlerDialogboksOk = SolvOkDialog(M虱celle, MaksMinVerdi, Verdi, Endre)
+End Function
+
+Function ProblemlerValg(Optional MaksTid As Variant, Optional Gjentakelser As Variant, Optional Presisjon As Variant, Optional AntaLine誡 As Variant, Optional G薑jennom As Variant, Optional Estimat As Variant, Optional Deriverte As Variant, Optional Sealternativer As Variant, Optional Toleranse As Variant, Optional Skalering As Variant, Optional Konvergens As Variant) As Variant
+    ProblemlerValg = SolvOptions(MaksTid, Gjentakelser, Presisjon, AntaLine誡, G薑jennom, Estimat, Deriverte, Sealternativer, Toleranse, Skalering, Konvergens)
+End Function
+
+Function ProblemlerTilbakestill() As Variant
+    ProblemlerTilbakestill = SolvReset
+End Function
+
+Function ProblemlerLagre(Lagringsomr蘚e As Variant) As Variant
+    ProblemlerLagre = SolvSave(Lagringsomr蘚e)
+End Function
+
+Function ProblemlerL(Optional Brukeravbrudd As Variant, Optional VisRef As Variant, Optional BrugerUdft As Variant, Optional VisReference As Variant) As Variant
+    If IsMissing(BrugerUdft) And IsMissing(VisReference) Then
+        'Danish Missing or Defaults exist, call Norwegian
+        ProblemlerL = SolvSolve(Brukeravbrudd, VisRef)
+    ElseIf IsMissing(Brukeravbrudd) And IsMissing(VisRef) And fnGetLCID() = "1030" Then
+        ' Norwegian missing, call Danish
+        ProblemlerL = SolvSolve(BrugerUdft, VisReference)
+    Else
+        'Fail
+        Err.Raise (450)
+    End If
+End Function
+
+'
+' Swedish - 1053
+'
+Function ProblemlarenL臠gTill(CellRef As Variant, Fh虱lande As Integer, Optional Formel As Variant) As Variant
+    ProblemlarenL臠gTill = SolvAdd(CellRef, Fh虱lande, Formel)
+End Function
+
+Function Problemlarenﾄndra(CellRef As Variant, Fh虱lande As Integer, Optional Formel As Variant) As Variant
+    Problemlarenﾄndra = SolvChange(CellRef, Fh虱lande, Formel)
+End Function
+
+Function ProblemlarenTaBort(CellRef As Variant, Fh虱lande As Integer, Optional Formel As Variant) As Variant
+    ProblemlarenTaBort = SolvDelete(CellRef, Fh虱lande, Formel)
+End Function
+
+Function ProblemlarenAvsluta(Optional Beh虱lLningar As Variant, Optional Rapport As Variant) As Variant
+    ProblemlarenAvsluta = SolvFinish(Beh虱lLningar, Rapport)
+End Function
+
+Function ProblemlarenAvslutaDialog(Optional Beh虱lLningar As Variant, Optional Rapport As Variant) As Variant
+    ProblemlarenAvslutaDialog = SolvFinishDialog(Beh虱lLningar, Rapport)
+End Function
+
+Function ProblemlarenH舂ta(Typ As Integer, Optional Namn As Variant) As Variant
+    ProblemlarenH舂ta = SolvGet(Typ, Namn)
+End Function
+
+Function ProblemlarenL舖In(Ref As Variant) As Variant
+    ProblemlarenL舖In = SolvLoad(Ref)
+End Function
+
+Function ProblemlarenOK(Optional M虱cell As Variant, Optional MaxMinV舐de As Variant, Optional V舐deAv As Variant, Optional JusterbaraCeller As Variant) As Variant
+    ProblemlarenOK = SolvOk(M虱cell, MaxMinV舐de, V舐deAv, JusterbaraCeller)
+End Function
+
+Function ProblemlarenOKDialog(Optional M虱cell As Variant, Optional MaxMinV舐de As Variant, Optional V舐deAv As Variant, Optional JusterbaraCeller As Variant) As Variant
+    ProblemlarenOKDialog = SolvOkDialog(M虱cell, MaxMinV舐de, V舐deAv, JusterbaraCeller)
+End Function
+
+Function ProblemlarenAlternativ(Optional MaxTid As Variant, Optional Iterationer As Variant, Optional Precision As Variant, Optional AntaLinj舐 As Variant, Optional Stega As Variant, Optional Uppskattning As Variant, Optional Derivator As Variant, Optional Smetod As Variant, Optional Tolerans As Variant, Optional Skalning As Variant, Optional Konvergens As Variant, Optional AntaIckeNeg As Variant) As Variant
+    ProblemlarenAlternativ = SolvOptions(MaxTid, Iterationer, Precision, AntaLinj舐, Stega, Uppskattning, Derivator, Smetod, Tolerans, Skalning, Konvergens, AntaIckeNeg)
+End Function
+
+Function Problemlarenﾅterst舁l() As Variant
+    Problemlarenﾅterst舁l = SolvReset
+End Function
+
+Function ProblemlarenSpara(Ref As Variant) As Variant
+    ProblemlarenSpara = SolvSave(Ref)
+End Function
+
+Function ProblemlarenL(Optional Avsluta As Variant, Optional VisaRef As Variant) As Variant
+    ProblemlarenL = SolvSolve(Avsluta, VisaRef)
+End Function
+

@@ -1,0 +1,40 @@
+install items
+
+xlwings (Installer)
+Git XL (Installer)
+Rubberduck VBA (Installer)
+VBA-Better-Array (Git)
+VBA-IDE-Code-Export (Git)
+Power Pivot (Excel Add-on)
+
+atpvbaen.xlam
+    Microsoft Excel Objects
+        Sheet1(REG)
+        Sheet2(Loc Table)
+        ThisWorkbook
+    Mods
+        VBA_Functions_and_Subs
+Solver.xlam
+    Microsoft Excel Objects
+        Sheet4() to Sheet30() - Languages
+    Forms
+        dlgConstraint
+        dlgFinish
+        dlgInterrupt
+        dlgLoadSave
+        dlgMerge
+        dlgOptions
+        dlgScenerio
+        dlgSolverParameters
+    Mods   
+        DialogLinks
+        modLocalize
+        RibbonX_Callbacks
+        SolverCode
+        VBA_Functions
+        VBA_Functions1
+funcres.xlam
+    ribbonx_code
+VBAPlayground.xls
+    Mod1
+    Mod2
