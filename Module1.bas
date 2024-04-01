@@ -82,4 +82,3 @@ ByVal lpDialogFunc As LongPtr, ByVal dwInitParam As LongPtr) As Integer
         Hook
     End If
 End Function
-
